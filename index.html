@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraText - AI Text Generator</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-secondary"></div>
+
+    <header class="app-header">
+        <div class="header-container">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i data-lucide="sparkles"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>AuraText</h1>
+                    <span>GPT-2 AI Generator</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button id="theme-toggle" class="icon-btn" title="Toggle Theme">
+                    <i data-lucide="moon" id="theme-icon"></i>
+                </button>
+                <button id="settings-toggle" class="btn btn-secondary">
+                    <i data-lucide="settings"></i>
+                    <span>API Settings</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <div class="grid-layout">
+            <!-- Left Panel: Prompt and Parameters -->
+            <section class="panel input-panel">
+                <div class="panel-header">
+                    <h2>Compose Prompt</h2>
+                    <p class="panel-subtitle">Provide a seed text to start generating</p>
+                </div>
+                
+                <div class="input-wrapper">
+                    <textarea id="prompt-input" placeholder="Start typing your story, question, or sentence here..." rows="6"></textarea>
+                    <div class="input-stats">
+                        <span id="char-counter">0 chars</span>
+                        <span id="word-counter">0 words</span>
+                    </div>
+                </div>
+
+                <div class="parameters-section">
+                    <div class="section-title">
+                        <h3>Model Parameters</h3>
+                        <i data-lucide="sliders" class="small-icon"></i>
+                    </div>
+
+                    <div class="parameters-grid">
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <label for="param-temp">Temperature</label>
+                                <span id="temp-val" class="badge">0.7</span>
+                            </div>
+                            <input type="range" id="param-temp" min="0.1" max="1.5" step="0.05" value="0.7">
+                            <span class="param-desc">Higher values increase randomness/creativity.</span>
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <label for="param-length">Max Length</label>
+                                <span id="length-val" class="badge">100</span>
+                            </div>
+                            <input type="range" id="param-length" min="10" max="250" step="5" value="100">
+                            <span class="param-desc">Maximum tokens to generate.</span>
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <label for="param-topp">Top-P (Nucleus)</label>
+                                <span id="topp-val" class="badge">0.9</span>
+                            </div>
+                            <input type="range" id="param-topp" min="0.1" max="1.0" step="0.05" value="0.9">
+                            <span class="param-desc">Controls cumulative probability threshold.</span>
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <label for="param-penalty">Repetition Penalty</label>
+                                <span id="penalty-val" class="badge">1.1</span>
+                            </div>
+                            <input type="range" id="param-penalty" min="1.0" max="2.0" step="0.05" value="1.1">
+                            <span class="param-desc">Higher penalty reduces repetitive phrases.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="generate-btn" class="btn btn-primary btn-block">
+                    <span id="btn-text">Generate Text</span>
+                    <i data-lucide="arrow-right" class="btn-icon"></i>
+                </button>
+            </section>
+
+            <!-- Right Panel: Output and Stats -->
+            <section class="panel output-panel-container">
+                <div class="panel-header">
+                    <h2>Generated Result</h2>
+                    <div class="output-actions">
+                        <button id="copy-btn" class="icon-btn" title="Copy Output" disabled>
+                            <i data-lucide="copy"></i>
+                        </button>
+                        <button id="clear-btn" class="icon-btn" title="Clear Text" disabled>
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="output-content-wrapper">
+                    <!-- Default state / loader -->
+                    <div id="output-placeholder" class="placeholder-state">
+                        <div class="placeholder-icon">
+                            <i data-lucide="terminal"></i>
+                        </div>
+                        <p>Your generated text will appear here. Modify parameters on the left to change behavior.</p>
+                    </div>
+
+                    <div id="output-loader" class="loader-state hidden">
+                        <div class="spinner"></div>
+                        <p>Querying Hugging Face Serverless API...</p>
+                        <span class="loading-subtext">This might take a moment if the model is loading.</span>
+                    </div>
+
+                    <!-- Output display -->
+                    <div id="output-text" class="output-text-content hidden" readonly></div>
+                </div>
+
+                <div class="output-footer hidden" id="output-metadata">
+                    <div class="meta-item">
+                        <i data-lucide="clock"></i>
+                        <span id="meta-time">0.0s</span>
+                    </div>
+                    <div class="meta-item">
+                        <i data-lucide="type"></i>
+                        <span id="meta-words">0 words</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- History Section -->
+        <section class="panel history-panel">
+            <div class="panel-header">
+                <h2>Generation History</h2>
+                <button id="clear-history-btn" class="btn btn-secondary btn-sm" disabled>
+                    <i data-lucide="trash-2"></i>
+                    <span>Clear All</span>
+                </button>
+            </div>
+            
+            <div id="history-list" class="history-list-container">
+                <!-- History items will be inserted dynamically -->
+                <div class="history-empty">
+                    <p>No recent generations. Start generating text to see your history here!</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>API Settings</h2>
+                <button id="close-settings" class="icon-btn">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="hf-model">Hugging Face Model Repos</label>
+                    <input type="text" id="hf-model" value="gpt2" placeholder="e.g. gpt2, distilgpt2, BigScience/bloomz-560m">
+                    <span class="input-hint">Specify any text-generation model from Hugging Face. Default is <code>gpt2</code>.</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="hf-token">Hugging Face Access Token (Optional)</label>
+                    <div class="token-input-wrapper">
+                        <input type="password" id="hf-token" placeholder="hf_...">
+                        <button id="toggle-token-visibility" class="icon-btn-inline">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
+                    <span class="input-hint">Highly recommended to avoid rate limits. Get one from your <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer">HF Settings Page</a>. Stored locally.</span>
+                </div>
+
+                <div class="api-status-card" id="api-status">
+                    <div class="status-indicator unknown"></div>
+                    <span id="api-status-text">Status: Not Checked</span>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button id="test-api-btn" class="btn btn-secondary">Test Connection</button>
+                <button id="save-settings-btn" class="btn btn-primary">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden">
+        <i data-lucide="info" id="toast-icon"></i>
+        <span id="toast-message">Notification message</span>
+    </div>
+
+    <footer class="app-footer">
+        <p>AuraText &copy; 2026. Powered by Hugging Face Inference API.</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
